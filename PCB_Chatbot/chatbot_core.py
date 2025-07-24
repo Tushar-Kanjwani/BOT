@@ -5,30 +5,39 @@ from together import Together
 # --- In-memory storage for chat logs ---
 chat_logs = []  # Each entry: {"user_query": ..., "model_response": ..., "total_tokens": ...}
 
-# --- Load players table into an array of dicts ---
-def load_players():
-    df = pd.read_csv("PCB.csv")
+# --- Load dataset table into an array of dicts ---
+def load_dataset():
+    df = pd.read_csv("Dataset.csv")
     df = df.drop(columns=[c for c in df.columns if c.startswith("Unnamed")], errors="ignore")
     return df.to_dict(orient="records")
 
-players = load_players()
+dataset = load_dataset()
 
 @lru_cache(maxsize=1)
 def load_context():
-    """Loads and formats the PCB.csv into a single text blob."""
-    df = pd.DataFrame(players)
+    """Loads and formats the Dataset.csv into a single text blob."""
+    df = pd.DataFrame(dataset)
     mapping = {
-        "Player":"Player","Starting Year":"First Match","Ending Year":"Last Match",
-        "Matches Played":"Matches","Innings Batted":"Innings","Not Outs":"Not Outs",
-        "Runs Scored":"Runs","Highest Score":"Highest Score","Average Score":"Average",
-        "Centuries":"100s","Half-centuries":"50s","Ducks":"Ducks"
+        "Name": "Name",
+        "DOB": "Date of Birth",
+        "Age": "Age",
+        "Place": "Birthplace",
+        "Test Runs": "Test Runs",
+        "ODI Runs": "ODI Runs",
+        "T20 Runs": "T20 Runs",
+        "International Runs": "Total International Runs",
+        "Maximum Score": "Highest Score",
+        "Last Match Venue": "Last Match Venue",
+        "Last Match Date": "Last Match Date",
+        "Runs in Last Match": "Runs in Last Match"
     }
     lines = []
     for _, row in df.iterrows():
         parts = []
         for col in df.columns:
-            label = mapping.get(col, col)
-            parts.append(f"{label}: {row[col]}")
+            if col in mapping:
+                label = mapping[col]
+                parts.append(f"{label}: {row[col]}")
         lines.append(", ".join(parts))
     return "\n".join(lines)
 
